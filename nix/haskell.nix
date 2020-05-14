@@ -20,6 +20,7 @@ let
       name = "cardano-node";
       src = ../.;
     };
+    hpack = null;
     ghc = buildPackages.haskell-nix.compiler.${compiler};
     modules = [
 
