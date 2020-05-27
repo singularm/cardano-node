@@ -131,6 +131,7 @@ pAddressCmd =
       AddressBuild
         <$> pPaymentVerificationKeyFile
         <*> Opt.optional pStakeVerificationKeyFile
+        <*> pNetwork
         <*> pMaybeOutputFile
 
 
@@ -546,11 +547,11 @@ pGenesisCmd =
 
     pGenesisAddr :: Parser GenesisCmd
     pGenesisAddr =
-      GenesisAddr <$> pVerificationKeyFile Input <*> pMaybeOutputFile
+      GenesisAddr <$> pVerificationKeyFile Input <*> pNetwork <*> pMaybeOutputFile
 
     pGenesisTxIn :: Parser GenesisCmd
     pGenesisTxIn =
-      GenesisTxIn <$> pVerificationKeyFile Input <*> pMaybeOutputFile
+      GenesisTxIn <$> pVerificationKeyFile Input <*> pNetwork <*> pMaybeOutputFile
 
     pGenesisCreate :: Parser GenesisCmd
     pGenesisCreate =
@@ -559,6 +560,7 @@ pGenesisCmd =
                     <*> pGenesisNumUTxOKeys
                     <*> pMaybeSystemStart
                     <*> pInitialSupply
+                    <*> pNetwork
 
     pGenesisDir :: Parser GenesisDir
     pGenesisDir =

@@ -76,7 +76,7 @@ runStakeAddressBuild :: VerificationKeyFile -> Maybe OutputFile -> ExceptT Shell
 runStakeAddressBuild (VerificationKeyFile stkVkeyFp) mOutputFp =
   firstExceptT (ShelleyStakeAddressReadVerKeyError stkVkeyFp) $ do
     stkVKey <- ExceptT $ readStakingVerificationKey stkVkeyFp
-    let rwdAddr = AddressShelleyReward $ shelleyVerificationKeyRewardAddress stkVKey
+    let rwdAddr = AddressShelleyReward _ $ shelleyVerificationKeyRewardAddress stkVKey
         hexAddr = addressToHex rwdAddr
     case mOutputFp of
       Just (OutputFile fpath) -> liftIO . LBS.writeFile fpath $ textToLByteString hexAddr

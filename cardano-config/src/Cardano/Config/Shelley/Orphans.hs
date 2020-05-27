@@ -40,10 +40,10 @@ import           Ouroboros.Consensus.Shelley.Node (ShelleyGenesis (..), emptyGen
 import           Ouroboros.Consensus.Shelley.Protocol.Crypto (TPraosStandardCrypto)
 
 import           Shelley.Spec.Ledger.Address (Addr(..), serialiseAddr, deserialiseAddr)
-import           Shelley.Spec.Ledger.BaseTypes (DnsName, Nonce (..), Port, StrictMaybe,
-                    UnitInterval (..), truncateUnitInterval)
+import           Shelley.Spec.Ledger.BaseTypes (DnsName, Network (..), Nonce (..), Port,
+                    StrictMaybe, UnitInterval (..), truncateUnitInterval)
 import           Shelley.Spec.Ledger.Coin (Coin(..))
-import           Shelley.Spec.Ledger.Credential (RewardAcnt (..), StakeCredential, Credential (..))
+import           Shelley.Spec.Ledger.Credential (StakeCredential, Credential (..))
 import qualified Shelley.Spec.Ledger.Credential as Ledger
 import           Shelley.Spec.Ledger.Crypto (Crypto)
 import           Shelley.Spec.Ledger.Keys (KeyHash(..))
@@ -62,10 +62,11 @@ import           Shelley.Spec.Ledger.UTxO (UTxO(..))
 instance Crypto crypto => ToJSON (ShelleyGenesis crypto) where
   toJSON sg =
     Aeson.object
-      [ "startTime"             .= sgStartTime sg
+      [ "systemStart"           .= sgSystemStart sg
         --TODO: this should not have both network magic and protocol magic
         -- they are different names for the same thing used in two ways.
       , "networkMagic"          .= sgNetworkMagic sg
+      , "networkId"             .= sgNetworkId sg
       , "protocolMagicId"       .= sgProtocolMagicId sg
       , "activeSlotsCoeff"      .= sgActiveSlotsCoeff sg
       , "securityParam"         .= sgSecurityParam sg
@@ -82,12 +83,37 @@ instance Crypto crypto => ToJSON (ShelleyGenesis crypto) where
       , "staking"               .= Null
       ]
 
+{-
+data ShelleyGenesis c = ShelleyGenesis {
+      sgSystemStart           :: !SystemStart
+    , sgNetworkMagic          :: !NetworkMagic
+    , sgNetworkId             :: !SL.Network
+    , sgProtocolMagicId       :: !ProtocolMagicId
+    , sgActiveSlotsCoeff      :: !Double
+    , sgSecurityParam         :: !SecurityParam
+    , sgEpochLength           :: !EpochSize
+    , sgSlotsPerKESPeriod     :: !Word64
+    , sgMaxKESEvolutions      :: !Word64
+    , sgSlotLength            :: !SlotLength
+    , sgUpdateQuorum          :: !Word64
+    , sgMaxMajorPV            :: !Natural
+    , sgMaxLovelaceSupply     :: !Word64
+    , sgProtocolParams        :: !SL.PParams
+    , sgGenDelegs             :: !(Map (SL.KeyHash 'SL.Genesis c) (SL.KeyHash 'SL.GenesisDelegate c))
+    , sgInitialFunds          :: !(Map (SL.Addr c) SL.Coin)
+    , sgStaking               :: !(ShelleyGenesisStaking c)
+    }
+  deriving stock    (Eq, Show, Generic)
+  deriving anyclass (NoUnexpectedThunks)
+-}
+
 instance Crypto crypto => FromJSON (ShelleyGenesis crypto) where
   parseJSON =
     Aeson.withObject "ShelleyGenesis" $ \ obj ->
       ShelleyGenesis
-        <$> obj .: "startTime"
+        <$> obj .: "systemStart"
         <*> obj .: "networkMagic"
+        <*> obj .: "networkId"
         <*> obj .: "protocolMagicId"
         <*> obj .: "activeSlotsCoeff"
         <*> obj .: "securityParam"
@@ -203,7 +229,6 @@ deriving instance ToJSONKey (StakeCredential c)
 
 deriving instance ToJSON (StakeCredential c)
 
-
 --
 -- Simple newtype wrappers JSON conversion
 --
@@ -225,6 +250,9 @@ deriving newtype instance FromJSON EpochSize
 deriving newtype instance ToJSON   NetworkMagic
 deriving newtype instance FromJSON NetworkMagic
 
+deriving instance FromJSON Network
+deriving instance ToJSON Network
+
 deriving newtype instance ToJSON   SecurityParam
 deriving newtype instance FromJSON SecurityParam
 
@@ -239,9 +267,9 @@ instance FromJSON SlotLength where
 deriving newtype instance ToJSON   SystemStart
 deriving newtype instance FromJSON SystemStart
 
-deriving newtype instance ToJSONKey (RewardAcnt c)
+deriving anyclass instance ToJSONKey (Ledger.RewardAcnt c)
 
-deriving newtype instance ToJSON (RewardAcnt c)
+deriving anyclass instance ToJSON (Ledger.RewardAcnt c)
 
 deriving newtype instance ToJSON (ScriptHash c)
 
@@ -299,7 +327,7 @@ instance Crypto crypto => ToJSON (Addr crypto) where
 instance Crypto crypto => FromJSON (Addr crypto) where
   parseJSON = Aeson.withText "address" parseAddr
 
-addrToText :: Crypto crypto => Addr crypto -> Text
+addrToText :: Addr crypto -> Text
 addrToText =
      Text.decodeLatin1 . Base16.encode . serialiseAddr
 

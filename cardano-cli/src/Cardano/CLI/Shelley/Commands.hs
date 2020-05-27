@@ -69,7 +69,7 @@ data ShelleyCommand
 data AddressCmd
   = AddressKeyGen VerificationKeyFile SigningKeyFile
   | AddressKeyHash VerificationKeyFile (Maybe OutputFile)
-  | AddressBuild VerificationKeyFile (Maybe VerificationKeyFile) (Maybe OutputFile)
+  | AddressBuild VerificationKeyFile (Maybe VerificationKeyFile) Network (Maybe OutputFile)
   | AddressBuildMultiSig  --TODO
   | AddressInfo Text
   deriving (Eq, Show)
@@ -181,14 +181,14 @@ data SystemCmd
 
 
 data GenesisCmd
-  = GenesisCreate GenesisDir Word Word (Maybe SystemStart) (Maybe Lovelace)
+  = GenesisCreate GenesisDir Word Word (Maybe SystemStart) (Maybe Lovelace) Network
   | GenesisKeyGenGenesis VerificationKeyFile SigningKeyFile
   | GenesisKeyGenDelegate VerificationKeyFile SigningKeyFile OpCertCounterFile
   | GenesisKeyGenUTxO VerificationKeyFile SigningKeyFile
   | GenesisKeyHash VerificationKeyFile
   | GenesisVerKey VerificationKeyFile SigningKeyFile
-  | GenesisTxIn VerificationKeyFile (Maybe OutputFile)
-  | GenesisAddr VerificationKeyFile (Maybe OutputFile)
+  | GenesisTxIn VerificationKeyFile Network (Maybe OutputFile)
+  | GenesisAddr VerificationKeyFile Network (Maybe OutputFile)
   deriving (Eq, Show)
 
 --
